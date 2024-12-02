@@ -1,10 +1,38 @@
 # Command line tool for converting ERA5 data to CCPP-SCM input
 
 ## Installation
+For now this tool can only be installed from source. To install it, clone the repository and run the following command in the root directory of the repository:
 
-TODO: Describe the installation process
+```bash
+pip install .
+```
 
 ## Usage
+Once installed the `era5-scm-tool` command will be available in your path. The tool has several subcommands. To see the available subcommands run:
+
+```bash
+era5-scm-tool --help
+```
+
+### Downloading ERA5 data
+This tool mainly supports downloading ERA5 data for a single location and time period. To download ERA5 data run:
+
+```bash
+era5-scm-tool download_era5 --help
+```
+
+Example usage:
+
+```bash
+era5-scm-tool download_era5 --latitude 52.52 --longitude -103.40 --start-date 2019-01-01 --end-date 2019-01-02 --output-file era5_data.nc
+```
+
+### Converting ERA5 data to CCPP-SCM input data
+To convert the downloaded ERA5 data to CCPP-SCM input data run:
+
+```bash
+era5-scm-tool convert_forcings --help
+```
 
 ## CCPP-SCM input data
 

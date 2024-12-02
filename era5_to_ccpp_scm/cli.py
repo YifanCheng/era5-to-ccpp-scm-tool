@@ -2,8 +2,8 @@ import os
 import click
 import xarray as xr
 
-from download_era5 import download_era5_time_series
-from convert_forcing import era5_to_scm_forcing
+from .download_era5 import download_era5_time_series
+from .convert_forcing import era5_to_scm_forcing
 
 @click.group()
 def cli():
