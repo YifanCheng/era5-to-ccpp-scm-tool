@@ -1,4 +1,5 @@
 import os
+import time
 import click
 import xarray as xr
 import numpy as np
@@ -68,19 +69,13 @@ def convert_forcings(
     ds = xr.merge([ds1, ds2])
     ds = ds.rename({'valid_time': 'time', 'pressure_level': 'levels',})
     out = era5_to_scm_forcing(ds)
-
-    if output_file is not None:
-        if os.path.exists(output_file):
-            out.to_netcdf(output_file, "a", group="forcing", format="NETCDF4")
-        else:
-            out.to_netcdf(output_file, "w", group="forcing", format="NETCDF4")
-
+    out.to_netcdf(output_file, format="NETCDF4")
     return out
 
 
 
 @cli.command(name='convert_era5_from_template')
-@click.option('-f', '--era5_processed_forcings', type=Union[str, xr.Dataset])
+@click.option('-f', '--era5_processed_forcings', type=str)
 @click.option('-t', '--template', type=str, default='gabls3')
 @click.option('-o', '--output_file', type=str)
 def convert_era5_from_template(
@@ -118,20 +113,18 @@ def convert_era5_from_template(
         latitude=era5_ds.latitude, longitude=era5_ds.longitude
     )
 
-    # First write the root dataset
-    template_index.to_netcdf(output_file, mode='w')
-    
     # Then create groups and write to them
-    with nc.Dataset(output_file, 'a') as root_grp:
+    with nc.Dataset(output_file, 'w') as root_grp:
         # Create the groups
         grp1 = root_grp.createGroup('forcing')
         grp2 = root_grp.createGroup('initial')
         grp3 = root_grp.createGroup('scalars')
         
-        # Write to each group
-        era5_ds.to_netcdf(output_file, group='forcing', mode='a')
-        template_initial.to_netcdf(output_file, group='initial', mode='a')
-        template_scalars.to_netcdf(output_file, group='scalars', mode='a')
+    # Write to each group
+    template_index.to_netcdf(output_file, mode='w')
+    era5_ds.to_netcdf(output_file, group='forcing', mode='a')
+    template_initial.to_netcdf(output_file, group='initial', mode='a')
+    template_scalars.to_netcdf(output_file, group='scalars', mode='a')
 
 
 @cli.command(name='run_full_pipeline')
@@ -139,10 +132,9 @@ def convert_era5_from_template(
 @click.option('--end_date', type=str)
 @click.option('--lat', type=float)
 @click.option('--lon', type=float)
-@click.option('--output_dir', type=str)
+@click.option('--output_dir', type=str, default='.')
 @click.option('--name', type=str, default='era5')
 @click.option('--template', type=str, default='gabls3')
-@click.option('--output_file', type=str)
 def run_full_pipeline(
     start_date: str,
     end_date: str,
@@ -150,8 +142,7 @@ def run_full_pipeline(
     lon: float,
     output_dir: str,
     name: str = 'era5',
-    template: str = 'gabls3',
-    output_file: str = 'output.nc'
+    template: str = 'gabls3'
 ):
     """
     Run the full pipeline from downloading ERA5 data to generating a CCPP-SCM input file.
@@ -164,6 +155,7 @@ def run_full_pipeline(
         output_dir=output_dir,
         name=name
     )
+    output_file = f'{output_dir}/{name}_scm.nc'
     era5_file = f'{output_dir}/{name}_pl.nc'
     era5_sfc_file = f'{output_dir}/{name}_sfc.nc'
     era5_processed = convert_forcings(era5_sfc_file, era5_file)

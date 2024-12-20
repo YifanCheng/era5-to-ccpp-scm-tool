@@ -21,7 +21,7 @@ def download_era5_time_series(start_date, end_date, lat, lon, output_dir, name='
     if lon < 0:
         lon = lon + 360
         
-    # Area definition
+    # Area definition (3x3 grid centered at lat, lon)
     area = [lat + 0.25, lon - 0.25, lat - 0.25, lon + 0.25]
     
     # Pressure levels
@@ -57,6 +57,8 @@ def download_era5_time_series(start_date, end_date, lat, lon, output_dir, name='
         },
         f'{output_dir}/{name}_pl.nc'
     )
+    # Sleep for 5 seconds to ensure things wrap up cleanly
+    time.sleep(1)
     
     # Download surface data
     print("Downloading surface data time series...")
@@ -84,6 +86,8 @@ def download_era5_time_series(start_date, end_date, lat, lon, output_dir, name='
         },
         f'{output_dir}/{name}_sfc.nc'
     )
+    # Sleep for 5 seconds to ensure things wrap up cleanly
+    time.sleep(5)
     
 
 if __name__ == "__main__":
