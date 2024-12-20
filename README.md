@@ -34,6 +34,12 @@ To convert the downloaded ERA5 data to CCPP-SCM input data run:
 era5-scm-tool convert_forcings --help
 ```
 
+Example usage:
+
+```bash
+era5-scm-tool convert_forcings -s era5_sfc.nc -p era5_pl.nc -o ccpp_scm_forcing.nc
+```
+
 ## CCPP-SCM input data
 
 ### Overall structure

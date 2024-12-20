@@ -190,7 +190,6 @@ def era5_to_scm_forcing(ds):
     out = xr.Dataset()
     pressure_levels = ds.levels * 100  # convert hPa to Pa
     out.coords['levels'] = pressure_levels
- 
 
     u_g, v_g = calculate_geostrophic_wind(ds.z, ds.latitude, ds.longitude)
 
@@ -263,5 +262,4 @@ def era5_to_scm_forcing(ds):
         if var in var_attrs:
             out[var].attrs = var_attrs[var]
  
-
     return out
