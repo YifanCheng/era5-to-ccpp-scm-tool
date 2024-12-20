@@ -50,6 +50,20 @@ def download_era5(
         name=name
     )
 
+def _core_convert_forcings(
+    era5_surface_file: Union[str, xr.Dataset],
+    era5_pressure_levels_file: Union[str, xr.Dataset],
+    output_file: Optional[str]=None
+):
+    ds1 = _maybe_open(era5_surface_file)
+    ds2 = _maybe_open(era5_pressure_levels_file)
+    ds = xr.merge([ds1, ds2])
+    ds = ds.rename({'valid_time': 'time', 'pressure_level': 'levels',})
+    out = era5_to_scm_forcing(ds)
+    if output_file is not None:
+        out.to_netcdf(output_file, format="NETCDF4")
+    return out
+
 
 @cli.command(name='convert_forcings')
 @click.option('-s', '--era5_surface_file', type=str)
@@ -63,29 +77,14 @@ def convert_forcings(
     """
     Convert ERA5 data to CCPP-SCM forcing file.
     """
-       
-    ds1 = _maybe_open(era5_surface_file)
-    ds2 = _maybe_open(era5_pressure_levels_file)
-    ds = xr.merge([ds1, ds2])
-    ds = ds.rename({'valid_time': 'time', 'pressure_level': 'levels',})
-    out = era5_to_scm_forcing(ds)
-    out.to_netcdf(output_file, format="NETCDF4")
-    return out
+    return _core_convert_forcings(era5_surface_file, era5_pressure_levels_file, output_file)
 
 
-
-@cli.command(name='convert_era5_from_template')
-@click.option('-f', '--era5_processed_forcings', type=str)
-@click.option('-t', '--template', type=str, default='gabls3')
-@click.option('-o', '--output_file', type=str)
-def convert_era5_from_template(
-    era5_processed_forcings: Union[str, xr.Dataset], 
-    template: str, 
+def _core_convert_era5_from_template(
+    era5_processed_forcings: Union[str, xr.Dataset],
+    template: str,
     output_file: str
 ):
-    """
-    Generate a template for CCPP-SCM input file.
-    """
     # Open the template file and the ERA5 data
     template_file = templates.AVAILABLE_TEMPLATES[template]
     template_index = xr.open_dataset(template_file)
@@ -127,6 +126,20 @@ def convert_era5_from_template(
     template_scalars.to_netcdf(output_file, group='scalars', mode='a')
 
 
+@cli.command(name='convert_era5_from_template')
+@click.option('-f', '--era5_processed_forcings', type=str)
+@click.option('-t', '--template', type=str, default='gabls3')
+@click.option('-o', '--output_file', type=str)
+def convert_era5_from_template(
+    era5_processed_forcings: Union[str, xr.Dataset], 
+    template: str, 
+    output_file: str
+):
+    """
+    Generate a template for CCPP-SCM input file.
+    """
+    _core_convert_era5_from_template(era5_processed_forcings, template, output_file)
+
 @cli.command(name='run_full_pipeline')
 @click.option('--start_date', type=str)
 @click.option('--end_date', type=str)
@@ -147,6 +160,7 @@ def run_full_pipeline(
     """
     Run the full pipeline from downloading ERA5 data to generating a CCPP-SCM input file.
     """
+    print('Downloading ERA5 data...')
     download_era5_time_series(
         start_date=start_date,
         end_date=end_date,
@@ -155,11 +169,22 @@ def run_full_pipeline(
         output_dir=output_dir,
         name=name
     )
+    print('Downloaded ERA5 data')
+    print('-------------------------------------')
     output_file = f'{output_dir}/{name}_scm.nc'
-    era5_file = f'{output_dir}/{name}_pl.nc'
+    era5_pl_file = f'{output_dir}/{name}_pl.nc'
     era5_sfc_file = f'{output_dir}/{name}_sfc.nc'
-    era5_processed = convert_forcings(era5_sfc_file, era5_file)
-    convert_era5_from_template(era5_processed, template, output_file)
+    print(era5_pl_file)
+    print(era5_sfc_file)
+    print('converting forcings...')
+    era5_processed = _core_convert_forcings(era5_sfc_file, era5_pl_file)
+    print('converted forcings')
+    print('-------------------------------------')
+    print('converting to template...')
+    _core_convert_era5_from_template(era5_processed, template, output_file)
+    print('converted to template')
+    print('-------------------------------------')
+
 
 
 
