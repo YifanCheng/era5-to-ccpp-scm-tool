@@ -1,26 +1,18 @@
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
 [project]
-name = "era5-to-ccpp-scm-tool"
-version = "0.0.0"
-description = "A small command line tool for generating CCPP SCM inputs from ERA5 data"
-authors = [
-    { name = "Andrew Bennett", email = "andrbenn@arizona.edu" },
-]
-dependencies = [
-    "click>=8.0.0",
-    "xarray",
-    "cdsapi",
-    "metpy",
-    "numpy"
-]
-requires-python = ">=3.8"
+name = "scm"
+version = "0.1.0"
+description = "Add your description here"
 readme = "README.md"
-
-[project.scripts]
-era5-scm-tool = "era5_to_ccpp_scm.cli:cli"  # This makes your script executable
-
-[tool.hatch.build.targets.wheel]
-packages = ["era5_to_ccpp_scm"]
+requires-python = ">=3.11"
+dependencies = [
+    "dask>=2025.3.0",
+    "f90nml>=1.4.5",
+    "h5netcdf>=1.6.1",
+    "ipykernel>=6.29.5",
+    "matplotlib>=3.10.1",
+    "netcdf4>=1.7.2",
+    "numpy>=2.2.4",
+    "pandas>=2.2.3",
+    "xarray>=2025.3.1",
+    "zarr>=3.0.6",
+]
