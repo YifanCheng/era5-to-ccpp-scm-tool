@@ -52,12 +52,14 @@ def download_era5(
 
 def _core_convert_forcings(
     era5_surface_file: Union[str, xr.Dataset],
+    era5_rad_file: Union[str, xr.Dataset],
     era5_pressure_levels_file: Union[str, xr.Dataset],
     output_file: Optional[str]=None
 ):
     ds1 = _maybe_open(era5_surface_file)
-    ds2 = _maybe_open(era5_pressure_levels_file)
-    ds = xr.merge([ds1, ds2])
+    ds2 = _maybe_open(era5_rad_file)
+    ds3 = _maybe_open(era5_pressure_levels_file)
+    ds = xr.merge([ds1, ds2, ds3])
     ds = ds.rename({'valid_time': 'time', 'pressure_level': 'levels',})
     out = era5_to_scm_forcing(ds)
     if output_file is not None:
@@ -67,17 +69,19 @@ def _core_convert_forcings(
 
 @cli.command(name='convert_forcings')
 @click.option('-s', '--era5_surface_file', type=str)
+@click.option('-r', '--era5_rad_file', type=str)
 @click.option('-p', '--era5_pressure_levels_file', type=str)
 @click.option('-o', '--output_file', type=str)
 def convert_forcings(
     era5_surface_file: Union[str, xr.Dataset],
+    era5_rad_file: Union[str, xr.Dataset],
     era5_pressure_levels_file: Union[str, xr.Dataset],
     output_file: Optional[str]=None,
 ):
     """
     Convert ERA5 data to CCPP-SCM forcing file.
     """
-    return _core_convert_forcings(era5_surface_file, era5_pressure_levels_file, output_file)
+    return _core_convert_forcings(era5_surface_file, era5_rad_file, era5_pressure_levels_file, output_file)
 
 
 def _core_convert_era5_from_template(
@@ -174,10 +178,12 @@ def run_full_pipeline(
     output_file = f'{output_dir}/{name}_scm.nc'
     era5_pl_file = f'{output_dir}/{name}_pl.nc'
     era5_sfc_file = f'{output_dir}/{name}_sfc.nc'
+    era5_rad_file = f'{output_dir}/{name}_rad.nc'
     print(era5_pl_file)
     print(era5_sfc_file)
+    print(era5_rad_file)
     print('converting forcings...')
-    era5_processed = _core_convert_forcings(era5_sfc_file, era5_pl_file)
+    era5_processed = _core_convert_forcings(era5_sfc_file, era5_rad_file, era5_pl_file)
     print('converted forcings')
     print('-------------------------------------')
     print('converting to template...')

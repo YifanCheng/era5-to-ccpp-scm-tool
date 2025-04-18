@@ -57,7 +57,7 @@ def download_era5_time_series(start_date, end_date, lat, lon, output_dir, name='
         },
         f'{output_dir}/{name}_pl.nc'
     )
-    # Sleep for 5 seconds to ensure things wrap up cleanly
+    # Sleep for 1 seconds to ensure things wrap up cleanly
     time.sleep(1)
     
     # Download surface data
@@ -70,15 +70,9 @@ def download_era5_time_series(start_date, end_date, lat, lon, output_dir, name='
             'variable': [
                 'surface_pressure',
                 'skin_temperature',
-                'top_net_solar_radiation',
-                'surface_net_solar_radiation',
-                'top_net_thermal_radiation',
-                'surface_net_thermal_radiation',
                 '2m_temperature',
                 '10m_u_component_of_wind',
                 '10m_v_component_of_wind',
-                'surface_solar_radiation_downwards',
-                'surface_thermal_radiation_downwards',
             ],
             'date': date_range,
             'time': [f"{h:02d}:00" for h in range(0, 24)],
@@ -86,9 +80,33 @@ def download_era5_time_series(start_date, end_date, lat, lon, output_dir, name='
         },
         f'{output_dir}/{name}_sfc.nc'
     )
+    # Sleep for 1 seconds to ensure things wrap up cleanly
+    time.sleep(1)
+
+     # Download surface data
+    print("Downloading surface radiation data time series...")
+    c.retrieve(
+        'reanalysis-era5-single-levels',
+        {
+            'product_type': 'reanalysis',
+            'format': 'netcdf',
+            'variable': [
+                'top_net_solar_radiation',
+                'surface_net_solar_radiation',
+                'top_net_thermal_radiation',
+                'surface_net_thermal_radiation',
+                'surface_solar_radiation_downwards',
+                'surface_thermal_radiation_downwards',
+            ],
+            'date': date_range,
+            'time': [f"{h:02d}:00" for h in range(0, 24)],
+            'area': area,
+        },
+        f'{output_dir}/{name}_rad.nc'
+    )
     # Sleep for 5 seconds to ensure things wrap up cleanly
     time.sleep(5)
-    
+       
 
 if __name__ == "__main__":
     # Example usage for time series
