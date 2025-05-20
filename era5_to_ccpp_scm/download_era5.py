@@ -49,6 +49,8 @@ def download_era5_time_series(start_date, end_date, lat, lon, output_dir, name='
                 'u_component_of_wind',
                 'v_component_of_wind',
                 'vertical_velocity',
+                'temperature_tendency_due_to_shortwave_radiation',
+                'temperature_tendency_due_to_longwave_radiation',
             ],
             'pressure_level': pressure_levels,
             'date': date_range,

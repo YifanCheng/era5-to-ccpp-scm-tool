@@ -1,6 +1,6 @@
 $case_config
 case_name = 'fluxnet_US-Whs',
-runtime = 172800,  ! 2 days runtime (in seconds) to match downloaded data period
+runtime = 169200,  ! 2 days runtime (in seconds) to match downloaded data period
 thermo_forcing_type = 2,
 mom_forcing_type = 2,
 relax_time = 7200.0,

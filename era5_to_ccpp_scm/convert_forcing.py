@@ -6,15 +6,29 @@ from metpy.units import units
 
 def calculate_radiative_heating(swnet_top, swdn_sfc, lwnet_top, lwdn_sfc, 
                               pressure, temperature):
-    """Calculate radiative heating rate profile."""
-    # Net radiation at each level
-    sw_heating = -(np.gradient(swnet_top - swdn_sfc, pressure, axis=0))
-    lw_heating = -(np.gradient(lwnet_top - lwdn_sfc, pressure, axis=0))
-    
-    # Convert to K/s using local temperature and specific heat
-    cp = 1004.0  # J/kg/K
-    dT_dt_rad = (sw_heating + lw_heating) / (cp * temperature)
-    
+    """
+    Calculate radiative heating rate profile.
+
+    Parameters:
+    -----------
+    swnet_top : array-like, shape (time, )
+        Net shortwave radiation at the top of the atmosphere
+    swdn_sfc : array-like, shape (time, )
+        Downward shortwave radiation at the surface
+    lwnet_top : array-like, shape (time, )
+        Net longwave radiation at the top of the atmosphere
+    lwdn_sfc : array-like, shape (time, )
+        Downward longwave radiation at the surface
+    pressure : array-like, shape (levels, )
+        Pressure levels in Pa
+    temperature : array-like, shape (time, levels)
+        Temperature at the center point in K
+    """
+    # Calculate the radiative heating rate
+    dT_dt_rad = np.zeros((swnet_top.shape[0], pressure.shape[0]))
+    for t in range(swnet_top.shape[0]):
+        # Calculate the radiative heating rate
+        dT_dt_rad[t, :] = (swnet_top[t] - swdn_sfc[t] + lwnet_top[t] - lwdn_sfc[t]) / (pressure * temperature[t, :])
     return dT_dt_rad
 
 
@@ -237,6 +251,29 @@ def era5_to_scm_forcing(ds):
     out['v_advec_qt'] = v_advec_theta
     out['p_surf'] = ds.sp.isel(latitude=1, longitude=1)
     out['T_surf'] = ds.t2m.isel(latitude=1, longitude=1)
+    
+    # Calculate radiative heating rate
+    swnet_top = ds.tsr.isel(latitude=1, longitude=1).values
+    # Possibly below should be `ds.ssrd`
+    swdn_sfc = ds.ssr.isel(latitude=1, longitude=1).values
+    lwnet_top = ds.ttr.isel(latitude=1, longitude=1).values
+    # Possibly below should be `ds.strd`
+    lwdn_sfc = ds.str.isel(latitude=1, longitude=1).values
+    
+    # Reshape pressure levels to match the time dimension
+    pressure_2d = np.tile(pressure_levels.values, (swnet_top.shape[0], 1))
+    print(pressure_2d.shape)
+    temperature = ds.t.isel(latitude=1, longitude=1).values
+    
+    # Calculate radiative heating rate
+    dT_dt_rad = calculate_radiative_heating(
+        swnet_top, swdn_sfc, lwnet_top, lwdn_sfc, 
+        pressure_levels, temperature
+    )
+    print("dT_dt_rad shape:", dT_dt_rad.shape)
+    
+    # Add to output dataset
+    out['dT_dt_rad'] = (('time', 'levels'), dT_dt_rad)
 
     # Add variable attributes
     var_attrs = {
@@ -262,4 +299,4 @@ def era5_to_scm_forcing(ds):
         if var in var_attrs:
             out[var].attrs = var_attrs[var]
  
-    return out
+    return out.transpose('levels', 'time')

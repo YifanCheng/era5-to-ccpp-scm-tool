@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # Script to convert ERA5 data to SCM forcing format for the Walnut Gulch FluxNet site (US-Whs)
 
@@ -39,7 +40,7 @@ echo "SCM input file: $OUTPUT_SCM"
 
 # Copy the output file to the SCM processed_case_input directory
 echo "Copying SCM input file to processed_case_input directory..."
-cp $OUTPUT_SCM ../data/processed_case_input/
+cp $OUTPUT_SCM ../casegen_walnut_gulch/data/
 
 echo "Setup complete. You can now run the SCM with the new case."
 echo "Don't forget to copy the case configuration file to etc/case_config/ and the run configuration file to run/."
